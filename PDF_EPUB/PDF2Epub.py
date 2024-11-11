@@ -39,7 +39,8 @@ def pdf_to_text(pdf_path):
     # Allowing configurable patterns for header and footer detection
     default_patterns = [
         r'^(Page \d+|\s*Copyright.*)$',
-        r'^\s*Confidential.*$'
+        r'^\s*Confidential.*$',
+        r'^(Animal Farm, by George Orwell.*)$',  # Example pattern for book title headers
     ]
     header_footer_patterns = [re.compile(pattern, re.IGNORECASE) for pattern in default_patterns]
     try:
@@ -73,12 +74,26 @@ def pdf_to_text(pdf_path):
 
 def split_into_chapters(text):
     """
-    Splits the text into chapters based on common chapter headings.
+    Splits the text into chapters based on common chapter headings, excluding the table of contents.
     """
     chapter_pattern = re.compile(r'\bChapter\s+\d+\b', re.IGNORECASE)
+    toc_pattern = re.compile(r'\bTable of Contents\b', re.IGNORECASE)
     chapters = []
     current_chapter = []
+    in_toc_section = False
+
     for line in text.splitlines():
+        if toc_pattern.match(line):
+            # Skip over the Table of Contents section
+            in_toc_section = True
+            continue
+
+        if in_toc_section:
+            # If currently in the TOC section, check for an empty line to exit
+            if line.strip() == "":
+                in_toc_section = False
+            continue
+
         if chapter_pattern.match(line):
             # Start a new chapter when a chapter heading is found
             if current_chapter:
