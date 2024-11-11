@@ -5,16 +5,43 @@ import pathlib
 import uuid
 import logging
 import re
+import pickle
 
 # Configure logging
 logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(message)s')
+
+def cache_text(pdf_path, text=None):
+    """
+    Caches the extracted text from a PDF to avoid reprocessing.
+    """
+    cache_file = pdf_path.with_suffix('.pkl')
+    if text is not None:
+        # Save the text to the cache file
+        with open(cache_file, 'wb') as f:
+            pickle.dump(text, f)
+    elif cache_file.exists():
+        # Load the text from the cache file if it exists
+        with open(cache_file, 'rb') as f:
+            return pickle.load(f)
+    return None
 
 def pdf_to_text(pdf_path):
     """
     Converts a PDF file to text, excluding headers and footers.
     """
+    # Check if cached text is available
+    cached_text = cache_text(pdf_path)
+    if cached_text:
+        logging.info(f"Loaded cached text for '{pdf_path}'.")
+        return cached_text
+    
     text = ""
-    header_footer_pattern = re.compile(r'^(Page \d+|\s*Copyright.*)$', re.IGNORECASE)
+    # Allowing configurable patterns for header and footer detection
+    default_patterns = [
+        r'^(Page \d+|\s*Copyright.*)$',
+        r'^\s*Confidential.*$'
+    ]
+    header_footer_patterns = [re.compile(pattern, re.IGNORECASE) for pattern in default_patterns]
     try:
         # Opens the PDF file in binary read mode
         with open(pdf_path, 'rb') as pdf_file:
@@ -25,9 +52,9 @@ def pdf_to_text(pdf_path):
                 page = reader.pages[i]
                 page_text = page.extract_text()
                 if page_text:  # Check if the extracted text is not None
-                    # Filter out headers and footers
+                    # Filter out headers and footers using configurable patterns
                     lines = page_text.splitlines()
-                    filtered_lines = [line for line in lines if not header_footer_pattern.match(line)]
+                    filtered_lines = [line for line in lines if not any(pattern.match(line) for pattern in header_footer_patterns)]
                     text += '\n'.join(filtered_lines) + '\n'
                 else:
                     logging.warning(f"Page {i + 1} of '{pdf_path}' could not be extracted.")
@@ -38,6 +65,10 @@ def pdf_to_text(pdf_path):
     except Exception as e:
         # Captures any other error that occurs while reading the file
         logging.error(f"Error reading the PDF file: {e}")
+    
+    # Cache the extracted text
+    if text:
+        cache_text(pdf_path, text)
     return text
 
 def split_into_chapters(text):
@@ -76,8 +107,26 @@ def create_epub(text, epub_path, title="Untitled", author="Unknown"):
         # Split text into chapters based on chapter headings
         chapters = split_into_chapters(text)
         if not chapters:  # If no chapters found, split by length
+            logging.info("No chapter headings detected, splitting text by length instead.")
             max_chapter_length = 5000  # Define maximum length of each chapter
-            chapters = [text[i:i + max_chapter_length] for i in range(0, len(text), max_chapter_length)]
+            paragraphs = text.split('\n\n')  # Split text into paragraphs
+            chapters = []
+            current_chapter = []
+            current_length = 0
+
+            for paragraph in paragraphs:
+                paragraph_length = len(paragraph)
+                if current_length + paragraph_length > max_chapter_length:
+                    # Start a new chapter if the current length exceeds the max length
+                    chapters.append('\n\n'.join(current_chapter))
+                    current_chapter = [paragraph]
+                    current_length = paragraph_length
+                else:
+                    current_chapter.append(paragraph)
+                    current_length += paragraph_length
+
+            if current_chapter:
+                chapters.append('\n\n'.join(current_chapter))
 
         # Create and add chapters to the book
         epub_chapters = []
@@ -86,6 +135,7 @@ def create_epub(text, epub_path, title="Untitled", author="Unknown"):
             chapter_file_name = f'chap_{idx + 1:02d}.xhtml'
             chapter = epub.EpubHtml(title=chapter_title, file_name=chapter_file_name, lang='en')
             chapter.content = f'<h1>{chapter_title}</h1><p>' + '<br/>'.join(chapter_text.split('\n')) + '</p>'
+
             book.add_item(chapter)  # Add the chapter to the book
             epub_chapters.append(chapter)  # Keep track of chapters for TOC and spine
 
