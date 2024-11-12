@@ -12,8 +12,16 @@ logging.basicConfig(level=logging.INFO, format='%(asctime)s - %(levelname)s - %(
 
 def cache_text(pdf_path, text=None):
     """
-    Caches the extracted text from a PDF to avoid reprocessing.
+    Manages PDF text caching to improve performance on subsequent runs.
+    
+    Args:
+        pdf_path: Path to the PDF file
+        text: Optional text content to cache. If None, attempts to load cached content
+    
+    Returns:
+        Cached text content if loading, None if saving or no cache exists
     """
+
     cache_file = pdf_path.with_suffix('.pkl')
     if text is not None:
         # Save the text to the cache file
@@ -27,8 +35,18 @@ def cache_text(pdf_path, text=None):
 
 def pdf_to_text(pdf_path):
     """
-    Converts a PDF file to text, excluding headers and footers.
+    Extracts and processes text content from a PDF file.
+    - Checks for cached version first
+    - Removes headers/footers using regex patterns
+    - Handles common PDF reading errors
+        
+    Args:
+        pdf_path: Path to the PDF file
+    
+    Returns:
+        Extracted and cleaned text content
     """
+
     # Check if cached text is available
     cached_text = cache_text(pdf_path)
     if cached_text:
@@ -47,6 +65,10 @@ def pdf_to_text(pdf_path):
         # Opens the PDF file in binary read mode
         with open(pdf_path, 'rb') as pdf_file:
             reader = PyPDF2.PdfReader(pdf_file)  # Creates a PDF reader with PyPDF2
+            # Validate PDF is not empty
+            if len(reader.pages) == 0:
+                logging.error(f"PDF file '{pdf_path}' appears to be empty.")
+                return None
             num_pages = len(reader.pages)  # Gets the number of pages in the PDF
             # Iterates over each page to extract the text
             for i in range(num_pages):
@@ -74,9 +96,27 @@ def pdf_to_text(pdf_path):
 
 def split_into_chapters(text):
     """
-    Splits the text into chapters based on common chapter headings, excluding the table of contents.
+    Intelligently splits text content into chapters.
+    - Detects chapter headings using regex
+    - Skips table of contents sections
+    - Preserves chapter structure
+    - Falls back to length-based splitting if no chapters detected
+    
+    Args:
+        text: Raw text content to split
+    
+    Returns:
+        List of chapter contents
     """
-    chapter_pattern = re.compile(r'\bChapter\s+\d+\b', re.IGNORECASE)
+    # Add more chapter patterns for better detection
+    chapter_patterns = [
+        r'\bChapter\s+\d+\b',
+        r'\bCHAPTER\s+\d+\b',
+        r'\b\d+\.\s+',  # Matches "1. ", "2. " etc.
+        r'\bPart\s+\d+\b',
+        r'\bSection\s+\d+\b'
+    ]
+    chapter_pattern = re.compile('|'.join(chapter_patterns), re.IGNORECASE)
     toc_pattern = re.compile(r'\bTable of Contents\b', re.IGNORECASE)
     chapters = []
     current_chapter = []
@@ -107,7 +147,18 @@ def split_into_chapters(text):
 
 def create_epub(text, epub_path, title="Untitled", author="Unknown"):
     """
-    Creates an EPUB file from the given text, organizing it into chapters.
+    Generates an EPUB file with proper structure and metadata.
+    - Creates chapter navigation
+    - Adds metadata (title, author, language)
+    - Generates unique identifier
+    - Handles content formatting
+    - Creates table of contents
+    
+    Args:
+        text: Processed text content
+        epub_path: Output path for EPUB file
+        title: Book title
+        author: Book author
     """
     try:
         book = epub.EpubBook()  # Creates a new instance of the EPUB book
@@ -118,6 +169,11 @@ def create_epub(text, epub_path, title="Untitled", author="Unknown"):
         book.set_title(title)  # Title of the book
         book.set_language('en')  # Language of the book
         book.add_author(author)  # Author of the book
+
+        # Add basic CSS styling
+        style = 'BODY {color: black; font-family: Arial, sans-serif;} h1 {text-align: center;}'
+        nav_css = epub.EpubItem(uid="style_nav", file_name="style/nav.css", media_type="text/css", content=style)
+        book.add_item(nav_css)
 
         # Split text into chapters based on chapter headings
         chapters = split_into_chapters(text)
@@ -170,7 +226,10 @@ def create_epub(text, epub_path, title="Untitled", author="Unknown"):
 
 def pdf_to_epub(pdf_path, epub_path, title="Untitled", author="Unknown"):
     """
-    Converts a PDF file to EPUB.
+    Main conversion function that orchestrates the PDF to EPUB process.
+    - Coordinates text extraction
+    - Manages EPUB creation
+    - Handles errors and logging
     """
     try:
         text = pdf_to_text(pdf_path)  # Extract text from the PDF file
