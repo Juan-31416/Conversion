@@ -63,6 +63,7 @@ def pdf_to_text(pdf_path):
         r'^(\s*Last updated.*)$',  # Additional pattern for footer texts like "last updated"
     ]
     header_footer_patterns = [re.compile(pattern, re.IGNORECASE) for pattern in default_patterns]
+    logging.info(f"Loaded header and footer patterns for '{pdf_path}'.")
     try:
         with pdfplumber.open(pdf_path) as pdf:
             # Validate PDF is not empty
@@ -76,8 +77,35 @@ def pdf_to_text(pdf_path):
                     lines = page_text.splitlines()
                     filtered_lines = [line for line in lines if not any(pattern.match(line) for pattern in header_footer_patterns)]
                     text += '\n'.join(filtered_lines) + '\n'
+                    logging.info(f"Page {i + 1} of '{pdf_path}' extracted.")
                 else:
                     logging.warning(f"Page {i + 1} of '{pdf_path}' could not be extracted.")
+    
+            # Add text cleaning steps
+            # 1. Fix missing space before "C" in headers
+            text = re.sub(r'([a-zA-Z])C\s*(\d+)\s*HAPTER', r'\1 C \2 HAPTER', text)
+            
+            # 2. Fix "C 1 HAPTER" patterns to "CHAPTER 1"
+            text = re.sub(r'C\s*(\d+)\s*HAPTER', r'CHAPTER \1', text, flags=re.IGNORECASE)
+            
+            # 3. Fix spaced chapter headers
+            text = re.sub(r'C\s*H\s*A\s*P\s*T\s*E\s*R\s+(\d+)', r'CHAPTER \1', text, flags=re.IGNORECASE)
+            
+            # 4. Fix table of contents header
+            text = re.sub(r'\bT\s*C\s*ABLE\s*OF\s*ONTENTS\b', 'TABLE OF CONTENTS', text)
+            
+            # 5. Clean up extra whitespace
+            text = re.sub(r'\s{2,}', ' ', text)
+            
+            # Save the cleaned text to a file
+            output_txt_path = pdf_path.with_suffix('.txt')
+            try:
+                with open(output_txt_path, 'w', encoding='utf-8') as f:
+                    f.write(text)
+                logging.info(f"Extracted text saved to: {output_txt_path}")
+            except Exception as e:
+                logging.error(f"Error saving text file: {e}")
+            
     except Exception as e:
         logging.error(f"Error reading the PDF file: {e}")
     
