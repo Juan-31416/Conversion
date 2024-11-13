@@ -53,3 +53,6 @@ def main():
 # Ensure the script only runs if executed directly
 if __name__ == "__main__":
     main()
+
+#TO RUN: python txt_to_format.py input.txt output.json json
+#TO RUN: python txt_to_format.py input.txt output.yaml yaml
