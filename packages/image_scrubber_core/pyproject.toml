@@ -1,0 +1,18 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "image-scrubber-core"
+version = "0.1.0"
+description = "Core library for secure image metadata scrubbing and SEO filenames"
+authors = [{ name = "CardanianTech", email = "jp.martintejeiro@qelronzal.com" }]
+requires-python = ">=3.12"
+dependencies = [
+  "Pillow>=10.0.0",
+  "piexif>=1.1.3",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["image_scrubber_core*"]

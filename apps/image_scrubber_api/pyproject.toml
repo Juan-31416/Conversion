@@ -1,0 +1,22 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "image-scrubber-api"
+version = "0.1.0"
+description = "FastAPI microservice for image metadata scrubbing"
+requires-python = ">=3.12"
+dependencies = [
+  "fastapi>=0.115.0",
+  "uvicorn[standard]>=0.30.0",
+  "python-multipart>=0.0.9",
+  "image-scrubber-core @ file:///Conversion/packages/image_scrubber_core",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["image_scrubber_api*"]
+
+[project.scripts]
+image-scrubber-api = "image_scrubber_api.main:run"

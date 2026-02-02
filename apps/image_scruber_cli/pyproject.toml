@@ -1,0 +1,21 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "image-scrubber-cli"
+version = "0.1.0"
+description = "CLI for secure image metadata scrubbing"
+requires-python = ">=3.12"
+dependencies = [
+  "typer[all]>=0.12.0",
+  "rich>=13.7.0",
+  "image-scrubber-core @ file:///Conversion/packages/image_scrubber_core",
+]
+
+[tool.setuptools.packages.find]
+where = ["src"]
+include = ["image_scrubber_cli*"]
+
+[project.scripts]
+image-scrubber = "image_scrubber_cli.main:app"
