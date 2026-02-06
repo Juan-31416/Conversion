@@ -6,11 +6,11 @@ from typing import Annotated
 from fastapi import APIRouter, UploadFile, File, HTTPException, status, Form
 from fastapi.responses import FileResponse
 
-from image_scrubber_core.metadata.cleaner import MetadataCleaner
-from image_scrubber_core.metadata.writer import MetadataWriter
-from image_scrubber_core.filenames.sanitizer import FilenameSanitizer
-from image_scrubber_core.security.hashing import FileHasher
-from image_scrubber_api.core.config import settings
+from packages.image_scrubber_core.metadata.cleaner import MetadataCleaner
+from packages.image_scrubber_core.metadata.writer import MetadataWriter
+from packages.image_scrubber_core.filenames.sanitizer import FilenameSanitizer
+from packages.image_scrubber_core.security.hashing import FileHasher
+from core.config import settings
 
 router = APIRouter(prefix="/images", tags=["images"])
 

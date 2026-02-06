@@ -3,8 +3,8 @@ from __future__ import annotations
 import uvicorn
 from fastapi import FastAPI
 
-from image_scrubber_api.api.routes_images import router as images_router
-from image_scrubber_api.core.config import settings
+from api.routes_images import router as images_router
+from core.config import settings
 
 
 def create_app() -> FastAPI:

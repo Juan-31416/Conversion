@@ -20,11 +20,11 @@ from PySide6.QtWidgets import (
     QFrame,
 )
 
-from image_scrubber_core.filenames.sanitizer import FilenameSanitizer
-from image_scrubber_core.metadata.cleaner import MetadataCleaner
-from image_scrubber_core.metadata.writer import MetadataWriter
-from image_scrubber_core.security.hashing import FileHasher
-from image_scrubber_desktop.services.qt_worker import ImageProcessorWorker
+from packages.image_scrubber_core.filenames.sanitizer import FilenameSanitizer
+from packages.image_scrubber_core.metadata.cleaner import MetadataCleaner
+from packages.image_scrubber_core.metadata.writer import MetadataWriter
+from packages.image_scrubber_core.security.hashing import FileHasher
+from services.qt_worker import ImageProcessorWorker
 
 
 class MainWindow(QMainWindow):

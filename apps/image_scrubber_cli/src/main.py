@@ -7,10 +7,10 @@ import typer
 from rich.console import Console
 from rich.table import Table
 
-from image_scrubber_core.metadata.cleaner import MetadataCleaner
-from image_scrubber_core.metadata.writer import MetadataWriter
-from image_scrubber_core.filenames.sanitizer import FilenameSanitizer
-from image_scrubber_core.security.hashing import FileHasher
+from packages.image_scrubber_core.metadata.cleaner import MetadataCleaner
+from packages.image_scrubber_core.metadata.writer import MetadataWriter
+from packages.image_scrubber_core.filenames.sanitizer import FilenameSanitizer
+from packages.image_scrubber_core.security.hashing import FileHasher
 
 app = typer.Typer(help="CLI para limpiar metadatos de imágenes y optimizar nombres SEO.")
 console = Console()

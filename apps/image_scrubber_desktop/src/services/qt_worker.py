@@ -4,9 +4,9 @@ from pathlib import Path
 
 from PySide6.QtCore import QThread, Signal
 
-from image_scrubber_core.metadata.cleaner import MetadataCleaner
-from image_scrubber_core.metadata.writer import MetadataWriter
-from image_scrubber_core.filenames.sanitizer import FilenameSanitizer
+from packages.image_scrubber_core.metadata.cleaner import MetadataCleaner
+from packages.image_scrubber_core.filenames.sanitizer import FilenameSanitizer
+from packages.image_scrubber_core.metadata.writer import MetadataWriter
 
 
 class ImageProcessorWorker(QThread):

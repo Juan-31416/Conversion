@@ -11,7 +11,7 @@ monorepo/
 │   ├── image_scrubber_desktop/
 │   │   ├── .venv/
 │   │   ├── pyproject.toml
-│   │   ├── src/image_scrubber_desktop/
+│   │   ├── src/
 │   │   │   ├── main.py
 │   │   │   ├── ui/
 │   │   │   │   ├── main_window.py
@@ -26,7 +26,7 @@ monorepo/
 │   │
 │   ├── image_scrubber_cli/
 │   │   ├── pyproject.toml
-│   │   ├── src/image_scrubber_cli/
+│   │   ├── src/
 │   │   │   ├── main.py
 │   │   │   └── __init__.py
 │   │   ├── tests/
@@ -35,7 +35,7 @@ monorepo/
 │   │
 │   ├── image_scrubber_api/
 │   │   ├── pyproject.toml
-│   │   ├── src/image_scrubber_api/
+│   │   ├── src/
 │   │   │   ├── main.py       # FastAPI app
 │   │   │   ├── api/
 │   │   │   │   ├── routes_images.py
@@ -54,7 +54,7 @@ monorepo/
 ├── packages/
 │   ├── image_scrubber_core/
 │   │   ├── pyproject.toml
-│   │   ├── src/image_scrubber_core/
+│   │   ├── src/
 │   │   │   ├── metadata/
 │   │   │   │   ├── cleaner.py
 │   │   │   │   ├── writer.py
